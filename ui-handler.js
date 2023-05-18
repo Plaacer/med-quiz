@@ -134,14 +134,14 @@ export async function populateQuizList(
         
           // Create a copy of the original choices array
           let choices = [...questionData.choices];
-
-          // Remember the correct answer before shuffling
-          let correctAnswer = choices[questionData.correctAnswer];
-
+        
+          // Save the correct answer before shuffling
+          let correctAnswerText = choices[questionData.correctAnswer];
+        
           // Shuffle the choices and keep track of their original indices
           let shuffledChoicesWithIndices = choices.map((value, index) => ({value, index}));
           shuffle(shuffledChoicesWithIndices);
-
+        
           // Update the choices array and the correct answer index after shuffling
           choices = shuffledChoicesWithIndices.map(item => item.value);
           questionData.correctAnswer = shuffledChoicesWithIndices.findIndex(item => item.index === questionData.correctAnswer);
@@ -149,7 +149,7 @@ export async function populateQuizList(
           choices.forEach((choice, index) => {
             const button = document.createElement('button');
             button.textContent = choice;
-            button.onclick = () => handleAnswerClick(index);
+            button.onclick = () => handleAnswerClick(index, choices, correctAnswerText);
         
             // Add a class to each choice button
             button.classList.add('quiz-button');
@@ -158,9 +158,8 @@ export async function populateQuizList(
           });
         
           updateProgressBar();
-        }
+        }        
         
-      
         function updateProgressBar() {
           const progressBar = document.getElementById('progress-bar');
           const progress = (currentQuestion / quizData.length) * 100;
@@ -169,13 +168,15 @@ export async function populateQuizList(
         
         
 
-        function handleAnswerClick(selectedIndex) {
+        function handleAnswerClick(selectedIndex, choices, correctAnswerText) {
           answeredQuestions.push({
             questionIndex: currentQuestion,
             userAnswerIndex: selectedIndex,
             correctAnswerIndex: quizData[currentQuestion].correctAnswer,
+            userAnswer: choices[selectedIndex],
+            correctAnswer: correctAnswerText,
           });
-        
+          
           showCorrectAnswer(selectedIndex);
         }        
         
@@ -210,6 +211,7 @@ export async function populateQuizList(
         }
         
         function showResults() {
+          console.log("showResults function called");
           questionElement.style.display = 'none';
           choicesContainer.style.display = 'none';
         
@@ -230,9 +232,9 @@ export async function populateQuizList(
           wrongAnswers.forEach(answer => {
             const questionData = quizData[answer.questionIndex];
             const questionText = questionData.question;
-            const userAnswer = questionData.choices[answer.userAnswerIndex];
-            const correctAnswer = questionData.choices[answer.correctAnswerIndex];
-        
+            const userAnswer = answer.userAnswer;
+            const correctAnswer = answer.correctAnswer;
+          
             const answerDetails = document.createElement('div');
             answerDetails.innerHTML = `
               <strong>Question:</strong> ${questionText}<br>
